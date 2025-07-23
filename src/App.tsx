@@ -109,6 +109,7 @@ export default function App() {
   const [programme, setProgramme] = useState<string>("All");
   const [favorites, setFavorites] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -155,7 +156,9 @@ export default function App() {
       f.description.toLowerCase().includes(search.toLowerCase());
     const matchProgramme =
       programme === "All" || f.webProgrammes.includes(programme);
-    return matchText && matchProgramme;
+    const matchFavorites = !showFavoritesOnly || favorites.includes(f.id);
+
+    return matchText && matchProgramme && matchFavorites;
   });
 
   return (
@@ -321,6 +324,47 @@ export default function App() {
                     Filter films by programme category
                   </div>
                 </div>
+                <div className="lg:w-48">
+                  <label className="block text-sm font-medium text-gray-800 mb-2">
+                    Quick Filters
+                  </label>
+                  <button
+                    onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                    className={`w-full px-4 py-3 rounded-lg border font-medium text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${
+                      showFavoritesOnly
+                        ? "bg-red-50 border-red-200 text-red-800 hover:bg-red-100"
+                        : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                    } ${
+                      favorites.length === 0
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
+                    aria-pressed={showFavoritesOnly}
+                    aria-describedby="favorites-filter-help"
+                    disabled={favorites.length === 0}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <Heart
+                        className={`w-4 h-4 ${
+                          showFavoritesOnly ? "text-red-600" : "text-gray-500"
+                        }`}
+                        fill={showFavoritesOnly ? "currentColor" : "none"}
+                      />
+                      <span className="truncate">
+                        {showFavoritesOnly
+                          ? "Show All"
+                          : `Favorites (${favorites.length})`}
+                      </span>
+                    </div>
+                  </button>
+                  <div id="favorites-filter-help" className="sr-only">
+                    {favorites.length === 0
+                      ? "No favorites to filter. Add some films to your favorites first."
+                      : showFavoritesOnly
+                      ? "Currently showing only your favorite films. Click to show all films."
+                      : "Click to show only your favorite films."}
+                  </div>
+                </div>
               </div>
               <div
                 className="mt-4 text-sm text-gray-700"
@@ -330,6 +374,7 @@ export default function App() {
                 Showing {filtered.length} of {typedFilmData.items.length} films
                 {programme !== "All" && ` in ${programme}`}
                 {search && ` matching "${search}"`}
+                {showFavoritesOnly && ` (favorites only)`}
               </div>
             </section>
 
@@ -565,12 +610,23 @@ export default function App() {
                     aria-live="polite"
                   >
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      No films found
+                      {showFavoritesOnly
+                        ? "No favorite films found"
+                        : "No films found"}
                     </h3>
                     <p className="text-gray-600">
-                      No films match your current search criteria. Try adjusting
-                      your search or filter.
+                      {showFavoritesOnly
+                        ? "None of your favorite films match the current search criteria. Try adjusting your search or view all films."
+                        : "No films match your current search criteria. Try adjusting your search or filter."}
                     </p>
+                    {showFavoritesOnly && (
+                      <button
+                        onClick={() => setShowFavoritesOnly(false)}
+                        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                      >
+                        Show All Films
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
