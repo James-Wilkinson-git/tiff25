@@ -148,7 +148,7 @@ export default function App() {
       })
       .join("\n");
 
-    const fullText = `My TIFF 2025 Favorites:\n\n${favoritesText}`;
+    const fullText = `My #TIFF50 Picks:\n\n${favoritesText}`;
 
     try {
       await navigator.clipboard.writeText(fullText);
@@ -328,7 +328,7 @@ export default function App() {
                           Preview:
                         </p>
                         <div className="text-xs text-gray-700 font-mono leading-relaxed max-h-32 overflow-y-auto">
-                          My TIFF 2025 Favorites:
+                          My #TIFF50 Picks:
                           <br />
                           <br />
                           {favoriteFilms.slice(0, 3).map((film, index) => (
@@ -403,8 +403,11 @@ export default function App() {
               </p>
               <p className="text-center text-gray-700 mb-6">
                 Your data is stored locally on your device so you can't transfer
-                from desktop to phone. This site doesn't require internet after
-                you've loaded it as long as left open.
+                from desktop to phone.
+              </p>
+              <p className="text-center text-gray-700 mb-6">
+                This site doesn't require internet after you've loaded it as
+                long as left open.
               </p>
             </div>
           </header>
