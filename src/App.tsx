@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Heart, HeartOff, X, GripVertical } from "lucide-react";
+import { Heart, HeartOff, X, GripVertical, Copy, Check } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -110,6 +110,7 @@ export default function App() {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
+  const [copySuccess, setCopySuccess] = useState<boolean>(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -131,6 +132,37 @@ export default function App() {
     setFavorites((prev) =>
       prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
     );
+  };
+
+  const copyFavoritesToClipboard = async () => {
+    if (favoriteFilms.length === 0) return;
+
+    const favoritesText = favoriteFilms
+      .map((film, index) => {
+        const rank = index + 1;
+        const directors =
+          film.directors.length > 0 ? ` (${film.directors.join(", ")})` : "";
+        return `${rank}. ${film.title}${directors}`;
+      })
+      .join("\n");
+
+    const fullText = `My TIFF 2025 Favorites:\n\n${favoritesText}`;
+
+    try {
+      await navigator.clipboard.writeText(fullText);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = fullText;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -224,6 +256,66 @@ export default function App() {
                       ))}
                     </div>
                   </SortableContext>
+
+                  {/* Copy Favorites Section */}
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <div className="mb-3">
+                      <h3 className="text-sm font-medium text-gray-900 mb-2">
+                        Share Your List
+                      </h3>
+                      <p className="text-xs text-gray-600 mb-3">
+                        Copy your ranked favorites to share with others
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={copyFavoritesToClipboard}
+                      className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${
+                        copySuccess
+                          ? "bg-green-50 text-green-700 border border-green-200"
+                          : "bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100"
+                      }`}
+                      aria-label="Copy favorites list to clipboard"
+                      disabled={favoriteFilms.length === 0}
+                    >
+                      {copySuccess ? (
+                        <>
+                          <Check className="w-4 h-4" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4" />
+                          Copy List
+                        </>
+                      )}
+                    </button>
+
+                    {favoriteFilms.length > 0 && (
+                      <div className="mt-3 p-3 bg-gray-50 rounded-md">
+                        <p className="text-xs text-gray-600 mb-2 font-medium">
+                          Preview:
+                        </p>
+                        <div className="text-xs text-gray-700 font-mono leading-relaxed max-h-32 overflow-y-auto">
+                          My TIFF 2025 Favorites:
+                          <br />
+                          <br />
+                          {favoriteFilms.slice(0, 3).map((film, index) => (
+                            <div key={film.id}>
+                              {index + 1}. {film.title}
+                              {film.directors.length > 0 &&
+                                ` (${film.directors.join(", ")})`}
+                            </div>
+                          ))}
+                          {favoriteFilms.length > 3 && (
+                            <div className="text-gray-500">
+                              ... and {favoriteFilms.length - 3} more
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </>
               ) : (
                 <div className="text-center py-8">
