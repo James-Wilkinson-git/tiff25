@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-import { Heart, HeartOff, X, GripVertical, Copy, Check } from "lucide-react";
+import {
+  Heart,
+  HeartOff,
+  X,
+  GripVertical,
+  Copy,
+  Check,
+  Play,
+} from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -18,6 +26,7 @@ import {
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import filmData from "./films.json";
+import trailersData from "./trailers.json";
 
 interface Film {
   id: string;
@@ -55,7 +64,22 @@ interface FilmData {
   items: Film[];
 }
 
+interface Trailer {
+  id: string;
+  link: string;
+}
+
+interface TrailersData {
+  trailers: Trailer[];
+}
+
 const typedFilmData = filmData as FilmData;
+const typedTrailersData = trailersData as TrailersData;
+
+// Helper function to find trailer for a film
+const findTrailerForFilm = (filmId: string): Trailer | undefined => {
+  return typedTrailersData.trailers.find((trailer) => trailer.id === filmId);
+};
 
 const programmes: string[] = [
   "All",
@@ -164,6 +188,7 @@ export default function App() {
       document.body.removeChild(textArea);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
+      console.error("Failed to copy to clipboard", err);
     }
   };
 
@@ -720,21 +745,39 @@ export default function App() {
                         )}
 
                         <div className="pt-3 border-t border-gray-100">
-                          {f.url && (
-                            <a
-                              href={`https://www.tiff.net/${f.url}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-block bg-gray-900 hover:bg-gray-800 focus:bg-gray-800 text-white text-sm px-4 py-2 rounded font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 no-underline"
-                              aria-label={`View ${f.title} details on TIFF website (opens in new tab)`}
-                            >
-                              View on TIFF
-                              <span className="sr-only">
-                                {" "}
-                                (opens in new tab)
-                              </span>
-                            </a>
-                          )}
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            {f.url && (
+                              <a
+                                href={`https://www.tiff.net/${f.url}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-block bg-gray-900 hover:bg-gray-800 focus:bg-gray-800 text-white text-sm px-4 py-2 rounded font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 no-underline text-center"
+                                aria-label={`View ${f.title} details on TIFF website (opens in new tab)`}
+                              >
+                                View on TIFF
+                                <span className="sr-only">
+                                  {" "}
+                                  (opens in new tab)
+                                </span>
+                              </a>
+                            )}
+                            {findTrailerForFilm(f.id) && (
+                              <a
+                                href={findTrailerForFilm(f.id)!.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 focus:bg-red-700 text-white text-sm px-4 py-2 rounded font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 no-underline"
+                                aria-label={`Watch a clip or trailer for ${f.title} (opens in new tab)`}
+                              >
+                                <Play className="w-4 h-4" fill="currentColor" />
+                                Watch Clip/Trailer
+                                <span className="sr-only">
+                                  {" "}
+                                  (opens in new tab)
+                                </span>
+                              </a>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
