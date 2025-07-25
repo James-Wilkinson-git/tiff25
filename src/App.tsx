@@ -270,7 +270,10 @@ export default function App() {
                 <div className="w-10 lg:hidden" /> {/* Spacer for centering */}
               </div>
               <p className="text-center text-gray-700 mb-6">
-                Discover films from the Toronto International Film Festival 2025
+                Discover films from the Toronto International Film Festival
+                2025. Your data is stored locally on your device and this site
+                doesn't require internet after you've loaded it as long as left
+                open.
               </p>
             </div>
           </header>
