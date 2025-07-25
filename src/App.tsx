@@ -111,6 +111,8 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -182,6 +184,26 @@ export default function App() {
     .map((id) => typedFilmData.items.find((f) => f.id === id))
     .filter(Boolean) as Film[];
 
+  // Touch handlers for swipe-to-close sidebar
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) =>
+    setTouchEnd(e.targetTouches[0].clientX);
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    if (isLeftSwipe) {
+      setSidebarOpen(false);
+    }
+  };
+
   const filtered = typedFilmData.items.filter((f: Film) => {
     const matchText =
       f.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -214,19 +236,28 @@ export default function App() {
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           } lg:translate-x-0 lg:static lg:inset-0`}
           aria-label="Favorites sidebar"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
         >
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">
                 My Favorites ({favorites.length})
               </h2>
-              <button
-                className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onClick={() => setSidebarOpen(false)}
-                aria-label="Close favorites sidebar"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Swipe indicator for mobile */}
+                <div className="lg:hidden flex items-center text-xs text-gray-400">
+                  <span className="mr-1">Swipe ←</span>
+                </div>
+                <button
+                  className="lg:hidden min-w-[44px] min-h-[44px] p-3 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-gray-100 active:bg-gray-200 transition-colors"
+                  onClick={() => setSidebarOpen(false)}
+                  aria-label="Close favorites sidebar"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
@@ -335,7 +366,11 @@ export default function App() {
           <div
             className="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden"
             onClick={() => setSidebarOpen(false)}
+            onTouchStart={() => setSidebarOpen(false)}
             aria-hidden="true"
+            role="button"
+            tabIndex={-1}
+            aria-label="Close sidebar"
           />
         )}
 
@@ -345,13 +380,13 @@ export default function App() {
             <div className="p-6 max-w-7xl mx-auto">
               <div className="flex items-center justify-between mb-4">
                 <button
-                  className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="lg:hidden relative min-w-[44px] min-h-[44px] p-3 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-gray-100 active:bg-gray-200 transition-colors"
                   onClick={() => setSidebarOpen(true)}
                   aria-label="Open favorites sidebar"
                 >
-                  <Heart className="w-5 h-5" />
+                  <Heart className="w-6 h-6" fill="red" />
                   {favorites.length > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center px-1 font-medium">
                       {favorites.length}
                     </span>
                   )}
@@ -359,7 +394,8 @@ export default function App() {
                 <h1 className="text-4xl font-bold text-center text-gray-900 flex-1">
                   TIFF 2025 Film Explorer
                 </h1>
-                <div className="w-10 lg:hidden" /> {/* Spacer for centering */}
+                <div className="w-[44px] lg:hidden" />{" "}
+                {/* Spacer for centering */}
               </div>
               <p className="text-center text-gray-700 mb-6">
                 Discover films from the Toronto International Film Festival
