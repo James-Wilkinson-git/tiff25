@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import {
   Heart,
   HeartOff,
@@ -27,6 +28,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import filmData from "./films.json";
 import trailersData from "./trailers.json";
+import TimelineGrid from "./TimelineGrid";
 
 interface Film {
   id: string;
@@ -128,10 +130,15 @@ function SortableItem({ id, film }: { id: string; film: Film }) {
   );
 }
 
-export default function App() {
+// Film Explorer Component
+function FilmExplorer() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState<string>("");
   const [programme, setProgramme] = useState<string>("All");
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    const saved = localStorage.getItem("favorites");
+    return saved ? JSON.parse(saved) : [];
+  });
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
@@ -146,18 +153,19 @@ export default function App() {
   );
 
   useEffect(() => {
-    const saved = localStorage.getItem("favorites");
-    if (saved) setFavorites(JSON.parse(saved));
-  }, []);
-
-  useEffect(() => {
+    console.log("Saving favorites to localStorage:", favorites);
     localStorage.setItem("favorites", JSON.stringify(favorites));
   }, [favorites]);
 
   const toggleFavorite = (id: string) => {
-    setFavorites((prev) =>
-      prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
-    );
+    console.log("Toggling favorite for film ID:", id);
+    setFavorites((prev) => {
+      const newFavorites = prev.includes(id)
+        ? prev.filter((f) => f !== id)
+        : [...prev, id];
+      console.log("New favorites array:", newFavorites);
+      return newFavorites;
+    });
   };
 
   const copyFavoritesToClipboard = async () => {
@@ -419,13 +427,22 @@ export default function App() {
                 <h1 className="text-4xl font-bold text-center text-gray-900 flex-1">
                   TIFF 2025 Film Explorer
                 </h1>
-                <div className="w-[44px] lg:hidden" />{" "}
-                {/* Spacer for centering */}
               </div>
               <p className="text-center text-gray-700 mb-6">
                 Discover films from the Toronto International Film Festival
                 2025.
               </p>
+
+              {/* Navigation buttons */}
+              <div className="flex justify-center gap-4 mb-6">
+                <button
+                  className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                  onClick={() => navigate("/timeline")}
+                >
+                  Timeline Grid
+                </button>
+              </div>
+
               <p className="text-center text-gray-700 mb-6">
                 Your data is stored locally on your device so you can't transfer
                 from desktop to phone.
@@ -823,5 +840,21 @@ export default function App() {
         </div>
       </div>
     </DndContext>
+  );
+}
+
+// Timeline component wrapper
+function Timeline() {
+  const navigate = useNavigate();
+  return <TimelineGrid onBack={() => navigate("/")} />;
+}
+
+// Main App component with routing
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<FilmExplorer />} />
+      <Route path="/timeline" element={<Timeline />} />
+    </Routes>
   );
 }
