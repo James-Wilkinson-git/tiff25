@@ -335,7 +335,7 @@ export default function TimelineGrid({ onBack }: TimelineGridProps) {
         </div>
       </header>
 
-      <main id="main-content" className="p-6 max-w-7xl mx-auto">
+      <main id="main-content" className="p-6 mx-auto">
         {/* Time Grid Header */}
         <div className="bg-neutral-50 border-b-2 border-gray-300 pb-2 mb-4 sticky top-[153px] z-20">
           <div className="flex justify-between text-sm text-gray-600">
