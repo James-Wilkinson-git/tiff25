@@ -319,7 +319,6 @@ export default function TimelineGrid({ onBack }: TimelineGridProps) {
                 checked={showSelectedOnly}
                 onChange={(e) => setShowSelectedOnly(e.target.checked)}
                 className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                disabled={selectedScreenings.length === 0}
               />
               <span className="text-sm font-medium text-gray-700">
                 Show only selected screenings ({selectedScreenings.length})
